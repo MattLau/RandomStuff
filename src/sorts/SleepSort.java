@@ -2,6 +2,7 @@ package sorts;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SleepSort implements Sorter {
 
@@ -9,8 +10,8 @@ public class SleepSort implements Sorter {
 
 	@Override
 	public void sort(int[] array) {
-		List<Integer> toAddList = new ArrayList<>();
 		List<Thread> threadList = new ArrayList<>();
+		AtomicInteger counter = new AtomicInteger(0);
 		for (int entry : array) {
 
 			if (entry < 1) {
@@ -18,8 +19,8 @@ public class SleepSort implements Sorter {
 						"Do not accept negative values");
 			}
 
-			SleepSortThread currentThread = new SleepSortThread(entry,
-					toAddList);
+			SleepSortThread currentThread = new SleepSortThread(entry, array,
+					counter);
 			threadList.add(currentThread);
 		}
 		for (Thread t : threadList) {
@@ -32,27 +33,26 @@ public class SleepSort implements Sorter {
 				e.printStackTrace();
 			}
 		}
-		for (int i = 0; i < array.length; i++) {
-			array[i] = toAddList.get(i);
-		}
 
 	}
 
 	static class SleepSortThread extends Thread {
 
 		private int sleepNumber;
-		private List<Integer> addToList;
+		private int[] array;
+		private AtomicInteger counter;
 
-		public SleepSortThread(final int sleepNumber,
-				final List<Integer> addToList) {
+		public SleepSortThread(final int sleepNumber, final int[] array,
+				AtomicInteger counter) {
 			this.sleepNumber = sleepNumber;
-			this.addToList = addToList;
+			this.array = array;
+			this.counter = counter;
 		}
 
 		public void run() {
 			try {
 				Thread.sleep(sleepNumber * SLEEP_FACTOR);
-				addToList.add(sleepNumber);
+				array[counter.getAndIncrement()] = sleepNumber;
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
